@@ -36,4 +36,7 @@ if ( ret < 0 ) {
 }
 
 sql->close_all_connection();
+
+sql->exit_all();
+
 ```
