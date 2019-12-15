@@ -44,6 +44,7 @@ namespace mysqlw {
 		void exit_all();
 		void close_all_connection();
 		int errcode();
+		int switch_database(const connection_details* connection_info);
 		const char* get_last_error();
 		int errc;
 	protected:
