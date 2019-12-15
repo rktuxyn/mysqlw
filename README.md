@@ -48,6 +48,14 @@ if ( ret < 0 ) {
 	std::cout << sql->get_last_error();
 }
 ```
+Create Database
+```c++
+mysql.exec( 'CREATE DATABASE web_jsx_db_2' );
+```
+Switch Database
+```c++
+mysql.switch_database("web_jsx_db_2");
+```
 Close all connection pool
 ```c++
 sql->close_all_connection();
