@@ -33,11 +33,12 @@ public:
 	int execute(const char* sql);
 	void exit_all();
 	void close_all_connection();
+	int switch_database(const char* database_name);
 private:
 	char* _internal_error;
 	int _errc;
 	void panic(const char* error, int code);
-	mysqlw::myssqlw_connection* _con;
+	mysqlw::mysqlw_connection* _con;
 	mysqlw::connection_details* _connection_inf;
 	void clear_conn_info();
 };

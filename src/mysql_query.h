@@ -20,7 +20,7 @@ namespace mysqlw {
 	class mysqlw_export mysqlw_query {
 	public:
 		mysqlw_query();
-		mysqlw_query(myssqlw_connection* sql_connection);
+		mysqlw_query(mysqlw_connection* sql_connection);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();
@@ -33,11 +33,10 @@ namespace mysqlw {
 		char* fetch_fieldname();
 		int ping();
 	protected:
-		myssqlw_connection* _sql_connection;
+		mysqlw_connection* _sql_connection;
 		connection_pool* _cpool;
 		MYSQL_RES* _res;
 		MYSQL_ROW _row;
-		int _rowcount;
 	};
 }
 #endif//!_mysql_query_h

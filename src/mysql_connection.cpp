@@ -6,15 +6,15 @@
 */
 #include "mysql_connection.h"
 namespace mysqlw {
-	/** myssqlw_connection*/
-	myssqlw_connection::myssqlw_connection() {
+	/** mysqlw_connection*/
+	mysqlw_connection::mysqlw_connection() {
 		_active_pools = NULL;
 		errc = 0; _cinfo = NULL;
 		_internal_error = new char;
 		conn_state = connection_state::CLOSED;
 	}
 
-	myssqlw_connection::myssqlw_connection(const connection_details* connection_info) {
+	mysqlw_connection::mysqlw_connection(const connection_details* connection_info) {
 		_active_pools = NULL; errc = 0; _internal_error = new char;
 		if (validate_cinfo(connection_info) < 0) {
 			return;
@@ -23,17 +23,19 @@ namespace mysqlw {
 		conn_state = connection_state::CLOSED;
 	}
 
-	void myssqlw_connection::panic(const char* error, int code = -1) {
+	void mysqlw_connection::panic(const char* error, int code = -1) {
 		free(_internal_error);
 		_internal_error = new char[strlen(error) + 1];
 		strcpy(_internal_error, error);
 		errc = code;
 	}
-	const char* myssqlw_connection::get_last_error() {
+	
+	const char* mysqlw_connection::get_last_error() {
 		if (errc >= 0) return "No Error Found!!!";
 		return const_cast<const char*>(_internal_error);
 	}
-	void myssqlw_connection::close_all_connection() {
+	
+	void mysqlw_connection::close_all_connection() {
 		if (conn_state == connection_state::CLOSED)return;
 		if (_active_pools == NULL)return;
 		connection_pool* cpool;
@@ -51,17 +53,20 @@ namespace mysqlw {
 		conn_state = connection_state::CLOSED;
 		_active_pools = NULL;
 	}
-	void myssqlw_connection::exit_all() {
+	
+	void mysqlw_connection::exit_all() {
 		if (_internal_error != NULL) {
 			free(_internal_error); _internal_error = NULL;
 		}
 		close_all_connection();
 	}
-	myssqlw_connection::~myssqlw_connection() {
+	
+	mysqlw_connection::~mysqlw_connection() {
 		this->_cinfo = NULL;
 		this->exit_all();
 	}
-	int myssqlw_connection::validate_cinfo(const connection_details* cinfo) {
+	
+	int mysqlw_connection::validate_cinfo(const connection_details* cinfo) {
 		if (cinfo->host == NULL || cinfo->host->empty()) {
 			panic("host name required....");
 			return -1;
@@ -82,16 +87,18 @@ namespace mysqlw {
 		return 1;
 
 	}
-	int myssqlw_connection::connect() {
+	
+	int mysqlw_connection::connect() {
 		if (this->_cinfo == NULL) {
 			throw new std::exception("Connection info required...");
 		}
-		connection_pool* pool = create_connection_pool();/** open one connection*/
+		connection_pool* cpool = create_connection_pool();/** open one connection*/
 		if (errc < 0)return errc;
-		free_connection_pool(pool);
+		free_connection_pool(cpool);
 		return errc;
 	}
-	int myssqlw_connection::connect(const connection_details* connection_info) {
+	
+	int mysqlw_connection::connect(const connection_details* connection_info) {
 		if (conn_state == connection_state::OPEN) {
 			close_all_connection(); this->_cinfo = NULL;
 		}
@@ -104,7 +111,8 @@ namespace mysqlw {
 		free_connection_pool(cpool);
 		return errc;
 	}
-	connection_pool* myssqlw_connection::create_connection_pool() {
+	
+	connection_pool* mysqlw_connection::create_connection_pool() {
 		connection_pool* cpool = NULL;
 		if (_active_pools != NULL) {
 			for (cpool = _active_pools; cpool; cpool = cpool->next) {
@@ -159,11 +167,53 @@ namespace mysqlw {
 		return cpool;
 	}
 
-	void myssqlw_connection::free_connection_pool(connection_pool* cpool) {
+	void mysqlw_connection::free_connection_pool(connection_pool* cpool) {
 		cpool->busy = 0;
 	}
 
-	int myssqlw_connection::errcode() {
+	int mysqlw_connection::errcode() {
 		return errc;
+	}
+	int mysqlw_connection::switch_database(const connection_details* connection_info){
+		if (conn_state == connection_state::CLOSED ) {
+			panic("No active connectio found...");
+			return errc; 
+		}
+		if (_active_pools == NULL) {
+			panic("No active connectio found...");
+			return errc;
+		}
+		if (validate_cinfo(connection_info) < 0) {
+			return errc;
+		}
+		connection_pool* cpool;
+		while (_active_pools) {
+			if (_active_pools->next == NULL) {
+				if (_active_pools->busy) {
+					mysql_close(_active_pools->mysql);
+					_active_pools = _active_pools->next;
+					continue;
+				}
+				break;
+			}
+			cpool = _active_pools;
+			_active_pools = _active_pools->next;
+			delete cpool;
+		}
+		_cinfo = NULL; _cinfo = connection_info;
+		if (_active_pools == NULL) {
+			return connect();
+		}
+		std::string err_str("");
+		if (mysql_select_db(_active_pools->mysql, _cinfo->database->c_str())) {
+			err_str.append("mysql_select_db(").append(_cinfo->host->c_str()).append(",")
+				.append(_cinfo->user->c_str()).append(",")
+				.append(_cinfo->password->c_str()).append(",")
+				.append(_cinfo->database->c_str()).append(") failed\n");
+			panic(err_str.c_str(), -3);
+			close_all_connection();
+			return errc;
+		}
+		return 0;
 	}
 }

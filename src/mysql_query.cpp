@@ -7,16 +7,13 @@
 #include "mysql_query.h"
 namespace mysqlw {
 	mysqlw_query::mysqlw_query() {
-		_sql_connection = 0;
-		_cpool = NULL; _res = NULL; _row = NULL; _rowcount = 0;
-		//_results.set_size(0);
+		_sql_connection = NULL;
+		_cpool = NULL; _res = NULL; _row = NULL;
 	}
-	mysqlw_query::mysqlw_query(myssqlw_connection* __sql_connection) {
+	mysqlw_query::mysqlw_query(mysqlw_connection* __sql_connection) {
 		_sql_connection = __sql_connection;
 		_cpool = _sql_connection->create_connection_pool();
 		_res = NULL; _row = NULL;
-		_rowcount = 0;
-		//_results.set_size(0);
 	}
 	mysqlw_query::~mysqlw_query() {
 		if (_res) {
@@ -26,6 +23,8 @@ namespace mysqlw {
 			_sql_connection->free_connection_pool(_cpool);
 			_cpool = NULL;
 		}
+		if (_sql_connection)
+			_sql_connection = NULL;
 	}
 	void mysqlw_query::free_connection() {
 		if (_cpool) {

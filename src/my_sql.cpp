@@ -37,7 +37,7 @@ connection_state my_sql::connect() {
 			panic("Not initilized...", -1);
 			return connection_state::CLOSED;
 		}
-		_con = new mysqlw::myssqlw_connection();
+		_con = new mysqlw::mysqlw_connection();
 		_con->connect(_connection_inf);
 	}
 	else {
@@ -54,7 +54,7 @@ connection_state my_sql::connect(mysqlw::connection_details* connection_info){
 		this->exit_all();
 		this->clear_conn_info();
 	}
-	_con = new mysqlw::myssqlw_connection();
+	_con = new mysqlw::mysqlw_connection();
 	_con->connect(connection_info);
 	if (_con->conn_state == connection_state::CLOSED) {
 		panic(_con->get_last_error(), _con->errc);
@@ -76,6 +76,19 @@ void my_sql::close_all_connection() {
 	if (state() == connection_state::CLOSED)return;
 	_con->close_all_connection();
 }
+int my_sql::switch_database(const char* database_name){
+	if (state() == connection_state::CLOSED) {
+		this->panic("No active connectio found...", -1);
+		return -1;
+	}
+	if (_connection_inf == NULL || (_connection_inf != NULL && _connection_inf->database->empty())) {
+		panic("Connection information not found...", -1);
+		return _errc;
+	}
+	_connection_inf->database->clear(); delete _connection_inf->database;
+	_connection_inf->database = new std::string(database_name);
+	return _con->switch_database(_connection_inf);
+}
 int my_sql::execute(const char* sql){
 	if (state() == connection_state::CLOSED) {
 		this->panic("No active connection state found..", -1);
@@ -95,7 +108,7 @@ void my_sql::exit_all(){
 	free(_internal_error);
 }
 
-void my_sql::panic(const char* error, int code){
+void my_sql::panic(const char* error, int code = -1) {
 	free(_internal_error);
 	_internal_error = new char[strlen(error) + 1];
 	strcpy(_internal_error, error);

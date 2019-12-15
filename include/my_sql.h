@@ -30,13 +30,13 @@ namespace mysqlw {
 		const char* unix_socket;
 		unsigned long clientflag;
 	}connection_details;
-	class mysqlw_export myssqlw_connection {
+	class mysqlw_export mysqlw_connection {
 	public:
 		connection_state conn_state;
 	public:
-		myssqlw_connection();
-		myssqlw_connection(const connection_details* connection_info);
-		~myssqlw_connection();
+		mysqlw_connection();
+		mysqlw_connection(const connection_details* connection_info);
+		~mysqlw_connection();
 		int connect(const connection_details* connection_info);
 		int connect();
 		connection_pool* create_connection_pool();
@@ -56,7 +56,7 @@ namespace mysqlw {
 	class mysqlw_export mysqlw_query {
 	public:
 		mysqlw_query();
-		mysqlw_query(myssqlw_connection* sql_connection);
+		mysqlw_query(mysqlw_connection* sql_connection);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();
@@ -69,11 +69,10 @@ namespace mysqlw {
 		char* fetch_fieldname();
 		int ping();
 	protected:
-		myssqlw_connection* _sql_connection;
+		mysqlw_connection* _sql_connection;
 		connection_pool* _cpool;
 		MYSQL_RES* _res;
 		MYSQL_ROW _row;
-		int _rowcount;
 	};
 }
 class mysqlw_export my_sql {
@@ -89,11 +88,12 @@ public:
 	int execute(const char* sql);
 	void exit_all();
 	void close_all_connection();
+	int switch_database(const char* database_name);
 private:
 	char* _internal_error;
 	int _errc;
 	void panic(const char* error, int code);
-	mysqlw::myssqlw_connection* _con;
+	mysqlw::mysqlw_connection* _con;
 	mysqlw::connection_details* _connection_inf;
 };
 template<class _func>

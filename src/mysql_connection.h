@@ -14,13 +14,13 @@
 #endif//!_mysql_global_h
 #pragma warning(disable : 4996)
 namespace mysqlw {
-	class mysqlw_export myssqlw_connection {
+	class mysqlw_export mysqlw_connection {
 	public:
 		connection_state conn_state;
 	public:
-		myssqlw_connection();
-		myssqlw_connection(const connection_details* connection_info);
-		~myssqlw_connection();
+		mysqlw_connection();
+		mysqlw_connection(const connection_details* connection_info);
+		~mysqlw_connection();
 		int connect(const connection_details* connection_info);
 		int connect();
 		connection_pool* create_connection_pool();
@@ -28,6 +28,7 @@ namespace mysqlw {
 		void exit_all();
 		void close_all_connection();
 		int errcode();
+		int switch_database(const connection_details* connection_info);
 		const char* get_last_error();
 		int errc;
 	protected:
