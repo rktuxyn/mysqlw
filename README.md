@@ -1,5 +1,5 @@
 # mysql_wrapper (C++)
-MySQL C++ Wrapper for web_jsx (FCGI/CGI Application)<br/>
+Multi Connection Pool MySQL C++ Wrapper for web_jsx (FCGI/CGI Application)<br/>
 #Include header file
 ```c++
 #include <my_sql.h>
