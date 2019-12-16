@@ -104,7 +104,7 @@ const char* my_sql::execute(const char* sql){
 		this->panic(query->get_mysql_eror(), -1);
 	}
 	else {
-		result = query->get_fast_col_val();
+		result = query->get_first_col_val();
 	}
 	query->free_result(); query->free_connection();
 	return result;
