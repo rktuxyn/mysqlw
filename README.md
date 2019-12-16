@@ -27,7 +27,7 @@ if (sql->connect( con ) == connection_state::CLOSED) {
 ```
 Execute plain sql statement
 ```c++
-int ret = sql.execute("CREATE TABLE Persons ( PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255), City varchar(255))");
+int ret = sql.execute("CREATE TABLE IF NOT EXISTS Persons ( PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255), City varchar(255))");
 ```
 Read the status of current execution
 ```c++
@@ -50,7 +50,11 @@ if ( ret < 0 ) {
 ```
 Create Database
 ```c++
-mysql.exec( 'CREATE DATABASE web_jsx_db_2' );
+mysql.exec( 'CREATE DATABASE IF NOT EXISTS web_jsx_db_2' );
+```
+Drop Database
+```c++
+mysql.exec( 'DROP DATABASE IF EXISTS web_jsx_db_2' );
 ```
 Switch Database
 ```c++
