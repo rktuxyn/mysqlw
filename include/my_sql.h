@@ -63,6 +63,7 @@ namespace mysqlw {
 		const char* get_mysql_eror();
 		MYSQL_RES* _execute(const char* sql);
 		int execute_query(const char* sql);
+		const char* get_first_col_val();
 		void free_result();
 		void free_connection();
 		__int64 insert_id();
