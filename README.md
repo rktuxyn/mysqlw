@@ -25,6 +25,18 @@ if (sql->connect( con ) == connection_state::CLOSED) {
 	std::cout << sql->get_last_error();
 }
 ```
+Drop Database
+```c++
+mysql.exec( 'DROP DATABASE IF EXISTS web_jsx_db' );
+```
+Create Database
+```c++
+mysql.exec( 'CREATE DATABASE IF NOT EXISTS web_jsx_db' );
+```
+Switch Database
+```c++
+mysql.switch_database("web_jsx_db");
+```
 Execute plain sql statement
 ```c++
 int ret = sql.execute("CREATE TABLE IF NOT EXISTS Persons ( PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255), City varchar(255))");
@@ -47,18 +59,6 @@ int ret = sql->execute(select * from Persons, [](int index, std::vector<char*>& 
 if ( ret < 0 ) {
 	std::cout << sql->get_last_error();
 }
-```
-Create Database
-```c++
-mysql.exec( 'CREATE DATABASE IF NOT EXISTS web_jsx_db_2' );
-```
-Drop Database
-```c++
-mysql.exec( 'DROP DATABASE IF EXISTS web_jsx_db_2' );
-```
-Switch Database
-```c++
-mysql.switch_database("web_jsx_db_2");
 ```
 Close all connection pool
 ```c++
