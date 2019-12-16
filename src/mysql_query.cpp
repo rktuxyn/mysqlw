@@ -54,7 +54,7 @@ namespace mysqlw {
 		}
 		return -1;
 	}
-	const char* mysqlw_query::get_fast_col_val() {
+	const char* mysqlw_query::get_first_col_val() {
 		const char* result = '\0';
 		if (_sql_connection && _cpool && _res) {
 			if (mysql_num_rows(_res) == 0) return result;
