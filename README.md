@@ -40,7 +40,7 @@ Execute plain sql statement
 ```c++
 sql->execute("CREATE TABLE IF NOT EXISTS Persons ( PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255), City varchar(255))");
 ```
-Check if error occured
+Read the status of current execution
 ```c++
 if ( sql->has_error() ) {
   std::cout << sql->get_last_error();
@@ -49,12 +49,6 @@ if ( sql->has_error() ) {
 Return query result
 ```c++
 const char* ret = sql->execute('select Address from Persons limit 1');
-```
-Read the status of current execution
-```c++
-if ( ret < 0 ) {
-	std::cout << sql->get_last_error();
-}
 ```
 Execute plain sql statement as like as data reader
 ```c++
