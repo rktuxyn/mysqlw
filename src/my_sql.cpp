@@ -89,18 +89,25 @@ int my_sql::switch_database(const char* database_name){
 	_connection_inf->database = new std::string(database_name);
 	return _con->switch_database(_connection_inf);
 }
-int my_sql::execute(const char* sql){
+bool my_sql::has_error() {
+	return _errc < 0;
+}
+const char* my_sql::execute(const char* sql){
+	const char* result = '\0';
 	if (state() == connection_state::CLOSED) {
 		this->panic("No active connection state found..", -1);
-		return _errc;
+		return result;
 	}
 	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query(this->_con);
 	int rec = query->execute_query(sql);
 	if (rec < 0) {
 		this->panic(query->get_mysql_eror(), -1);
 	}
+	else {
+		result = query->get_fast_col_val();
+	}
 	query->free_result(); query->free_connection();
-	return rec;
+	return result;
 }
 void my_sql::exit_all(){
 	if (state() == connection_state::CLOSED)return;

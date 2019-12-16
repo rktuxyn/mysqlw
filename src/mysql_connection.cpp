@@ -146,7 +146,10 @@ namespace mysqlw {
 				panic(err_str.c_str(), -2);
 				return cpool;
 			}
-			if (mysql_select_db(cpool->mysql, _cinfo->database->c_str())) {
+			if (mysql_select_db(
+				/*MYSQL *mysql*/cpool->mysql,
+				/*const char *db*/_cinfo->database->c_str()
+			)) {
 				err_str.append("mysql_select_db(").append(_cinfo->host->c_str()).append(",")
 					.append(_cinfo->user->c_str()).append(",")
 					.append(_cinfo->password->c_str()).append(",")
@@ -205,8 +208,12 @@ namespace mysqlw {
 			return connect();
 		}
 		std::string err_str("");
-		if (mysql_select_db(_active_pools->mysql, _cinfo->database->c_str())) {
-			err_str.append("mysql_select_db(").append(_cinfo->host->c_str()).append(",")
+		if (mysql_select_db(
+			/*MYSQL *mysql*/_active_pools->mysql,
+			/*const char *db*/_cinfo->database->c_str()
+		)) {
+			err_str.append("mysql_select_db(")
+				.append(_cinfo->host->c_str()).append(",")
 				.append(_cinfo->user->c_str()).append(",")
 				.append(_cinfo->password->c_str()).append(",")
 				.append(_cinfo->database->c_str()).append(") failed\n");

@@ -86,7 +86,8 @@ public:
 	const char* get_last_error();
 	template<class _func>
 	int execute(const char* sql, _func func);
-	int execute(const char* sql);
+	const char* execute(const char* sql);
+	bool has_error();
 	void exit_all();
 	void close_all_connection();
 	int switch_database(const char* database_name);
@@ -110,29 +111,25 @@ int my_sql::execute(const char* sql, _func func) {
 		delete query;
 		return _errc;
 	}
-	if (res->row_count == 0) {
-		//this->panic("Can not display list of errors/warnings", -1);
-		query->free_result();
-		delete query;
-		return 0;
-	}
 	int count = 0;
-	int n_fields = mysql_num_fields(res);
-	if (n_fields != 0) {
-		size_t len = 0;
-		MYSQL_ROW row;
-		while ((row = mysql_fetch_row(res)) != NULL) {
-			std::vector<char*>* rows = new std::vector<char*>();
-			for (int i = 0; i < n_fields; i++) {
-				char* c = row[i];
-				len = strlen(c);
-				char* copy = new char[len + 1];
-				strcpy(copy, c);
-				rows->push_back(copy);
+	if (mysql_num_rows( res ) != 0) {
+		int n_fields = mysql_num_fields(res);
+		if (n_fields != 0) {
+			size_t len = 0;
+			MYSQL_ROW row;
+			while ((row = mysql_fetch_row(res)) != NULL) {
+				std::vector<char*>* rows = new std::vector<char*>();
+				for (int i = 0; i < n_fields; i++) {
+					char* c = row[i];
+					len = strlen(c);
+					char* copy = new char[len + 1];
+					strcpy(copy, c);
+					rows->push_back(copy);
+				}
+				func(count, *rows); count++;
+				rows->clear(); delete rows;
+				row = NULL;
 			}
-			func(count, *rows); count++;
-			rows->clear(); delete rows;
-			row = NULL;
 		}
 	}
 	query->free_result(); query->free_connection();

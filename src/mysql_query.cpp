@@ -46,13 +46,27 @@ namespace mysqlw {
 	int mysqlw_query::execute_query(const char* sql) {
 		if (_sql_connection && _cpool && !_res) {
 			int rs = mysql_query(_cpool->mysql, sql);
-			if (mysql_errno(_cpool->mysql) || mysql_warning_count(_cpool->mysql)) {
+			if (mysql_errno(_cpool->mysql) /*|| mysql_warning_count(_cpool->mysql)*/) {
 				return -1;
 			}
 			_res = mysql_store_result(_cpool->mysql);
 			return rs;
 		}
 		return -1;
+	}
+	const char* mysqlw_query::get_fast_col_val() {
+		const char* result = '\0';
+		if (_sql_connection && _cpool && _res) {
+			if (mysql_num_rows(_res) == 0) return result;
+			int n_fields = mysql_num_fields(_res);
+			if (n_fields == 0)return result;
+			MYSQL_ROW row = mysql_fetch_row(_res);
+			char* resp = row[0];
+			result = const_cast<const char*>(resp);
+			row = NULL;
+			return result;
+		}
+		return '\0';
 	}
 	MYSQL_RES* mysqlw_query::_execute(const char* sql) {
 		if (_sql_connection && _cpool && !_res) {

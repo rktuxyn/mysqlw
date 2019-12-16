@@ -30,7 +30,8 @@ public:
 	const char* get_last_error();
 	template<class _func>
 	int execute(const char* sql, _func func);
-	int execute(const char* sql);
+	const char* execute(const char* sql);
+	bool has_error();
 	void exit_all();
 	void close_all_connection();
 	int switch_database(const char* database_name);
