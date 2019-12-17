@@ -40,7 +40,7 @@ namespace mysqlw {
 		if (_active_pools == NULL)return;
 		connection_pool* cpool;
 		for (cpool = _active_pools; cpool; cpool = cpool->next) {
-			mysql_close(cpool->mysql);
+			mysql_close(cpool->conn);
 		}
 		while (_active_pools) {
 			cpool = _active_pools;
@@ -59,6 +59,13 @@ namespace mysqlw {
 			free(_internal_error); _internal_error = NULL;
 		}
 		close_all_connection();
+	}
+
+	void mysqlw_connection::exit_nicely(connection_pool* cpool){
+		if (cpool == NULL || (cpool != NULL && cpool->conn == NULL))return;
+		mysql_close(cpool->conn); delete cpool->conn; cpool->conn = NULL;
+		cpool->busy = -1;
+		cpool->conn_state = connection_state::CLOSED;
 	}
 	
 	mysqlw_connection::~mysqlw_connection() {
@@ -116,24 +123,24 @@ namespace mysqlw {
 		connection_pool* cpool = NULL;
 		if (_active_pools != NULL) {
 			for (cpool = _active_pools; cpool; cpool = cpool->next) {
-				if (!cpool->busy) {
-					break;
-				}
+				if (cpool->busy < 0 || !cpool->busy) break;
 			}
 			if (cpool && cpool->busy) {
 				cpool = NULL;
 			}
 		}
-		if (!cpool) {
-			cpool = new connection_pool;
+		if (!cpool || (cpool != NULL && (cpool->busy < 0 || cpool->conn_state == connection_state::CLOSED))) {
+			if (!cpool) {
+				cpool = new connection_pool;
+			}
 			std::string err_str("");
-			cpool->mysql = mysql_init(NULL);
-			if (cpool->mysql == NULL) {
+			cpool->conn = mysql_init(NULL);
+			if (cpool->conn == NULL) {
 				panic("mysql_init() failed\n");
 				return cpool;
 			}
 			if (!mysql_real_connect(
-				/*MYSQL *mysql*/cpool->mysql,
+				/*MYSQL *mysql*/cpool->conn,
 				/*const char *host*/_cinfo->host->c_str(),
 				/*const char *user*/_cinfo->user->c_str(),
 				/*const char *passwd*/_cinfo->password->c_str(),
@@ -142,20 +149,36 @@ namespace mysqlw {
 				/*const char *unix_socket*/NULL,
 				/*unsigned long clientflag*/_cinfo->clientflag
 			)) {
-				err_str.append("Conection error:").append(mysql_error(cpool->mysql));
+				err_str.append("Conection error:").append(mysql_error(cpool->conn));
+				cpool->error_code = -2;
+				cpool->error_msg = err_str.c_str();
 				panic(err_str.c_str(), -2);
-				return cpool;
+				cpool->conn_state = connection_state::CLOSED;
 			}
-			if (mysql_select_db(
-				/*MYSQL *mysql*/cpool->mysql,
-				/*const char *db*/_cinfo->database->c_str()
-			)) {
-				err_str.append("mysql_select_db(").append(_cinfo->host->c_str()).append(",")
-					.append(_cinfo->user->c_str()).append(",")
-					.append(_cinfo->password->c_str()).append(",")
-					.append(_cinfo->database->c_str()).append(") failed\n");
-				panic(err_str.c_str(), -3);
-				return cpool;
+			else {
+				cpool->conn_state = connection_state::OPEN;
+			}
+			if (cpool->conn_state == connection_state::OPEN) {
+				if (mysql_select_db(
+					/*MYSQL *mysql*/cpool->conn,
+					/*const char *db*/_cinfo->database->c_str()
+				)) {
+					err_str.append("mysql_select_db(").append(_cinfo->host->c_str()).append(",")
+						.append(_cinfo->user->c_str()).append(",")
+						.append(_cinfo->password->c_str()).append(",")
+						.append(_cinfo->database->c_str()).append(") failed\n");
+					cpool->error_code = -3;
+					cpool->error_msg = err_str.c_str();
+					panic(err_str.c_str(), -3);
+					cpool->conn_state = connection_state::CLOSED;
+				}
+				else {
+					cpool->conn_state = connection_state::OPEN;
+				}
+			}
+			if (cpool->conn_state == connection_state::OPEN) {
+				cpool->error_code = 0;
+				cpool->error_msg = NULL;
 			}
 			cpool->busy = 1;
 			cpool->next = _active_pools;
@@ -172,6 +195,8 @@ namespace mysqlw {
 
 	void mysqlw_connection::free_connection_pool(connection_pool* cpool) {
 		cpool->busy = 0;
+		cpool->error_code = 0;
+		cpool->error_msg = NULL;
 	}
 
 	int mysqlw_connection::errcode() {
@@ -193,7 +218,7 @@ namespace mysqlw {
 		while (_active_pools) {
 			if (_active_pools->next == NULL) {
 				if (_active_pools->busy) {
-					mysql_close(_active_pools->mysql);
+					mysql_close(_active_pools->conn);
 					_active_pools = _active_pools->next;
 					continue;
 				}
@@ -209,7 +234,7 @@ namespace mysqlw {
 		}
 		std::string err_str("");
 		if (mysql_select_db(
-			/*MYSQL *mysql*/_active_pools->mysql,
+			/*MYSQL *mysql*/_active_pools->conn,
 			/*const char *db*/_cinfo->database->c_str()
 		)) {
 			err_str.append("mysql_select_db(")

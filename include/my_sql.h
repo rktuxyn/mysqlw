@@ -18,8 +18,11 @@
 namespace mysqlw {
 	typedef struct conn_pool {
 		struct conn_pool* next;    /* pointer to next member*/
-		MYSQL* mysql;                  /* MySQL connection handle*/
+		MYSQL* conn;                  /* MySQL connection handle*/
+		connection_state conn_state;
 		int busy;                   /* connection busy flag*/
+		int error_code;
+		const char* error_msg;
 	}connection_pool;
 	typedef struct {
 		std::string* host;
@@ -41,6 +44,7 @@ namespace mysqlw {
 		int connect();
 		connection_pool* create_connection_pool();
 		void free_connection_pool(connection_pool* cpool);
+		void exit_nicely(connection_pool* cpool);
 		void exit_all();
 		void close_all_connection();
 		int errcode();
@@ -56,8 +60,7 @@ namespace mysqlw {
 	};
 	class mysqlw_export mysqlw_query {
 	public:
-		mysqlw_query();
-		mysqlw_query(mysqlw_connection* sql_connection);
+		mysqlw_query(connection_pool* cpool);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();
@@ -70,8 +73,8 @@ namespace mysqlw {
 		MYSQL_FIELD* fetch_field();
 		char* fetch_fieldname();
 		int ping();
+		void exit_nicely();
 	protected:
-		mysqlw_connection* _sql_connection;
 		connection_pool* _cpool;
 		MYSQL_RES* _res;
 		MYSQL_ROW _row;
@@ -105,7 +108,13 @@ int my_sql::execute(const char* sql, _func func) {
 		this->panic("Connection not initilized yet...", -1);
 		return _errc;
 	}
-	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query(this->_con);
+	mysqlw::connection_pool* cpool = this->_con->create_connection_pool();
+	if (cpool->error_code < 0) {
+		this->panic(cpool->error_msg, cpool->error_code);
+		this->_con->exit_nicely(cpool);
+		return _errc;
+	}
+	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query(cpool);
 	MYSQL_RES* res = query->_execute(sql);
 	if (res == NULL) {
 		this->panic(query->get_mysql_eror(), -1);

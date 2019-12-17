@@ -98,7 +98,13 @@ const char* my_sql::execute(const char* sql){
 		this->panic("No active connection state found..", -1);
 		return result;
 	}
-	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query(this->_con);
+	mysqlw::connection_pool* cpool = this->_con->create_connection_pool();
+	if (cpool->error_code < 0) {
+		this->panic(cpool->error_msg, cpool->error_code);
+		this->_con->exit_nicely(cpool);
+		return result;
+	}
+	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query( cpool );
 	int rec = query->execute_query(sql);
 	if (rec < 0) {
 		this->panic(query->get_mysql_eror(), -1);
@@ -107,6 +113,7 @@ const char* my_sql::execute(const char* sql){
 		result = query->get_first_col_val();
 	}
 	query->free_result(); query->free_connection();
+	delete query;
 	return result;
 }
 void my_sql::exit_all(){

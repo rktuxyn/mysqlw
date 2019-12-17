@@ -26,6 +26,7 @@ namespace mysqlw {
 		connection_pool* create_connection_pool();
 		void free_connection_pool(connection_pool* cpool);
 		void exit_all();
+		void exit_nicely(connection_pool* cpool);
 		void close_all_connection();
 		int errcode();
 		int switch_database(const connection_details* connection_info);

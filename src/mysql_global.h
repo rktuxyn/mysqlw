@@ -30,8 +30,11 @@ namespace mysqlw {
 	/** opendbstruct - database connection handle*/
 	typedef struct conn_pool {
 		struct conn_pool* next;    /* pointer to next member*/
-		MYSQL* mysql;                  /* MySQL connection handle*/
+		MYSQL* conn;                  /* MySQL connection handle*/
+		connection_state conn_state;
 		int busy;                   /* connection busy flag*/
+		int error_code;
+		const char* error_msg;
 	}connection_pool;
 	typedef struct {
 		std::string* host;

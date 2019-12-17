@@ -19,8 +19,9 @@
 namespace mysqlw {
 	class mysqlw_export mysqlw_query {
 	public:
-		mysqlw_query();
-		mysqlw_query(mysqlw_connection* sql_connection);
+		//mysqlw_query();
+		//mysqlw_query(mysqlw_connection* sql_connection);
+		mysqlw_query(connection_pool* cpool);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();
@@ -33,8 +34,9 @@ namespace mysqlw {
 		MYSQL_FIELD* fetch_field();
 		char* fetch_fieldname();
 		int ping();
+		void exit_nicely();
 	protected:
-		mysqlw_connection* _sql_connection;
+		//mysqlw_connection* _sql_connection;
 		connection_pool* _cpool;
 		MYSQL_RES* _res;
 		MYSQL_ROW _row;
