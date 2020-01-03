@@ -48,9 +48,12 @@ namespace mysqlw {
 			if (cpool->busy) {
 				//fprintf(stderr,"destroying Database object before Connect object(s)\n");
 			}
+			cpool->conn = NULL;
 			delete cpool;
 		}
 		conn_state = connection_state::CLOSED;
+		if (_active_pools != NULL)
+			delete _active_pools;
 		_active_pools = NULL;
 	}
 	
