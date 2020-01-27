@@ -8,24 +8,17 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_mysql_global_h)
-#define _mysql_global_h
+#	define _mysql_global_h
+#pragma warning(disable : 4996)
 //5:27 PM 12/14/2019
-#if !defined(_WINSOCK2API_)
-#include <winsock2.h>
-#endif//!_WINSOCK2API_
-#if !defined(_mysql_h)
-#include <mysql.h>
-#endif//_mysql_h
-#if !defined(_IOSTREAM_)
-#include <iostream>
-#endif//!_IOSTREAM_
-#include <exception>
-#ifndef mysqlw_export
-#define mysqlw_export __declspec(dllexport)
+#	include <winsock2.h>
+#	include <mysql.h>
+#	include <iostream>
+#	include <exception>
+#if !defined(mysqlw_export)
+#	define mysqlw_export __declspec(dllexport)
 #endif//!mysqlw_export
-#if !defined(_connection_state_h)
-#include "connection_state.h"
-#endif//!_connection_state_h
+#	include "connection_state.h"
 namespace mysqlw {
 	/** opendbstruct - database connection handle*/
 	typedef struct conn_pool {
@@ -46,5 +39,5 @@ namespace mysqlw {
 		unsigned long clientflag;
 	}connection_details;
 }
-#endif
+#endif//!_mysql_global_h
 //

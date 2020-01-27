@@ -8,11 +8,9 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_mysql_connection_h)
-#define _mysql_connection_h
-#if !defined(_mysql_global_h)
-#include "mysql_global.h"
-#endif//!_mysql_global_h
+#	define _mysql_connection_h
 #pragma warning(disable : 4996)
+#	include "mysql_global.h"
 namespace mysqlw {
 	class mysqlw_export mysqlw_connection {
 	public:
