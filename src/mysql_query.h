@@ -17,7 +17,7 @@ namespace mysqlw {
 	public:
 		//mysqlw_query();
 		//mysqlw_query(mysqlw_connection* sql_connection);
-		mysqlw_query(connection_pool* cpool);
+		explicit mysqlw_query(connection_pool* cpool);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();

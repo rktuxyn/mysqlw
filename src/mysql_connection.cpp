@@ -10,12 +10,12 @@ namespace mysqlw {
 	mysqlw_connection::mysqlw_connection() {
 		_active_pools = NULL;
 		errc = 0; _cinfo = NULL;
-		_internal_error = new char;
+		_internal_error = NULL;
 		conn_state = connection_state::CLOSED;
 	}
 
 	mysqlw_connection::mysqlw_connection(const connection_details* connection_info) {
-		_active_pools = NULL; errc = 0; _internal_error = new char;
+		_active_pools = NULL; errc = 0; _internal_error = NULL;
 		if (validate_cinfo(connection_info) < 0) {
 			return;
 		}
@@ -24,9 +24,13 @@ namespace mysqlw {
 	}
 
 	void mysqlw_connection::panic(const char* error, int code = -1) {
-		free(_internal_error);
-		_internal_error = new char[strlen(error) + 1];
-		strcpy(_internal_error, error);
+		if (_internal_error != NULL) {
+			delete[]_internal_error; _internal_error = NULL;
+		}
+		size_t len = strlen(error);
+		_internal_error = new char[len + sizeof(char)];
+		strcpy_s(_internal_error, len, error);
+		_internal_error[len] = '\000';
 		errc = code;
 	}
 	
@@ -59,13 +63,13 @@ namespace mysqlw {
 	
 	void mysqlw_connection::exit_all() {
 		if (_internal_error != NULL) {
-			free(_internal_error); _internal_error = NULL;
+			delete[]_internal_error; _internal_error = NULL;
 		}
 		close_all_connection();
 	}
 
 	void mysqlw_connection::exit_nicely(connection_pool* cpool){
-		if (cpool == NULL || (cpool != NULL && cpool->conn == NULL))return;
+		if (cpool == NULL || cpool->conn == NULL)return;
 		mysql_close(cpool->conn); delete cpool->conn; cpool->conn = NULL;
 		cpool->busy = -1;
 		cpool->conn_state = connection_state::CLOSED;
@@ -202,9 +206,9 @@ namespace mysqlw {
 		cpool->error_msg = NULL;
 	}
 
-	int mysqlw_connection::errcode() {
+	/*int mysqlw_connection::errcode() {
 		return errc;
-	}
+	}*/
 	int mysqlw_connection::switch_database(const connection_details* connection_info){
 		if (conn_state == connection_state::CLOSED ) {
 			panic("No active connectio found...");

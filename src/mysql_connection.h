@@ -16,8 +16,8 @@ namespace mysqlw {
 	public:
 		connection_state conn_state;
 	public:
-		mysqlw_connection();
-		mysqlw_connection(const connection_details* connection_info);
+		explicit mysqlw_connection();
+		explicit mysqlw_connection(const connection_details* connection_info);
 		~mysqlw_connection();
 		int connect(const connection_details* connection_info);
 		int connect();
@@ -26,7 +26,7 @@ namespace mysqlw {
 		void exit_all();
 		void exit_nicely(connection_pool* cpool);
 		void close_all_connection();
-		int errcode();
+		//int errcode();
 		int switch_database(const connection_details* connection_info);
 		const char* get_last_error();
 		int errc;

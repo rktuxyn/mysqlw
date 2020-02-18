@@ -18,7 +18,7 @@
 #pragma warning(disable : 4996)
 class mysqlw_export my_sql {
 public:
-	my_sql();
+	explicit my_sql();
 	~my_sql();
 	connection_state connect(mysqlw::connection_details* connection_info);
 	connection_state connect();

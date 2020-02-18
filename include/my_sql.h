@@ -9,6 +9,7 @@
 #	define mysqlw_export __declspec(dllexport)
 #endif//!mysqlw_export
 #	include "connection_state.h"
+#pragma warning (disable : 4996)
 namespace mysqlw {
 	typedef struct conn_pool {
 		struct conn_pool* next;    /* pointer to next member*/

@@ -9,7 +9,7 @@
 my_sql::my_sql(){
 	_con = NULL;
 	_errc = 0;
-	_internal_error = new char;
+	_internal_error = NULL;
 	_connection_inf = NULL;
 }
 void my_sql::clear_conn_info() {
@@ -81,7 +81,7 @@ int my_sql::switch_database(const char* database_name){
 		this->panic("No active connectio found...", -1);
 		return -1;
 	}
-	if (_connection_inf == NULL || (_connection_inf != NULL && _connection_inf->database->empty())) {
+	if (_connection_inf == NULL || _connection_inf->database->empty()) {
 		panic("Connection information not found...", -1);
 		return _errc;
 	}
@@ -93,19 +93,19 @@ bool my_sql::has_error() {
 	return _errc < 0;
 }
 const char* my_sql::execute(const char* sql){
-	const char* result = '\0';
 	if (state() == connection_state::CLOSED) {
 		this->panic("No active connection state found..", -1);
-		return result;
+		return NULL;
 	}
 	mysqlw::connection_pool* cpool = this->_con->create_connection_pool();
 	if (cpool->error_code < 0) {
 		this->panic(cpool->error_msg, cpool->error_code);
 		this->_con->exit_nicely(cpool);
-		return result;
+		return NULL;
 	}
 	mysqlw::mysqlw_query* query = new mysqlw::mysqlw_query( cpool );
 	int rec = query->execute_query(sql);
+	const char* result = NULL;
 	if (rec < 0) {
 		this->panic(query->get_mysql_eror(), -1);
 	}
@@ -119,12 +119,18 @@ const char* my_sql::execute(const char* sql){
 void my_sql::exit_all(){
 	if (state() == connection_state::CLOSED)return;
 	_con->exit_all(); delete _con; _con = NULL;
-	free(_internal_error);
+	if (_internal_error != NULL) {
+		delete[]_internal_error; _internal_error = NULL;
+	}
 }
 
 void my_sql::panic(const char* error, int code = -1) {
-	free(_internal_error);
-	_internal_error = new char[strlen(error) + 1];
-	strcpy(_internal_error, error);
+	if (_internal_error != NULL) {
+		delete[]_internal_error; _internal_error = NULL;
+	}
+	size_t len = strlen(error);
+	_internal_error = new char[len + sizeof(char)];
+	strcpy_s(_internal_error, len, error);
+	_internal_error[len] = '\000';
 	_errc = code;
 }

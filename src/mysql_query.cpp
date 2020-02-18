@@ -53,18 +53,17 @@ namespace mysqlw {
 		return -1;
 	}
 	const char* mysqlw_query::get_first_col_val() {
-		const char* result = '\0';
 		if ( _cpool && _res) {
-			if (mysql_num_rows(_res) == 0) return result;
+			if (mysql_num_rows(_res) == 0) return NULL;
 			int n_fields = mysql_num_fields(_res);
-			if (n_fields == 0)return result;
+			if (n_fields == 0)return NULL;
 			MYSQL_ROW row = mysql_fetch_row(_res);
 			char* resp = row[0];
-			result = const_cast<const char*>(resp);
+			const char* result = const_cast<const char*>(resp);
 			row = NULL;
 			return result;
 		}
-		return '\0';
+		return NULL;
 	}
 	MYSQL_RES* mysqlw_query::_execute(const char* sql) {
 		if ( _cpool && !_res) {
