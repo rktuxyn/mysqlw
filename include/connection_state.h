@@ -8,8 +8,7 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_connection_state_h)
-#define _connection_state_h
-#pragma warning (disable : 4231)
+#	define _connection_state_h
 typedef enum {
 	OPEN = 1,
 	CLOSED = 0

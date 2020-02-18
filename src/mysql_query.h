@@ -8,20 +8,16 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_mysql_query_h)
-#define _mysql_query_h
-#if !defined(_mysql_global_h)
-#include "mysql_global.h"
-#endif//!_mysql_global_h
-#if !defined(_mysql_connection_h)
-#include "mysql_connection.h"
-#endif//!_mysql_connection_h
+#	define _mysql_query_h
 #pragma warning(disable : 4996)
+#	include "mysql_global.h"
+#	include "mysql_connection.h"
 namespace mysqlw {
 	class mysqlw_export mysqlw_query {
 	public:
 		//mysqlw_query();
 		//mysqlw_query(mysqlw_connection* sql_connection);
-		mysqlw_query(connection_pool* cpool);
+		explicit mysqlw_query(connection_pool* cpool);
 		~mysqlw_query();
 		int try_execute(const char* sql);
 		const char* get_mysql_eror();

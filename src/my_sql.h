@@ -8,21 +8,17 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_my_sql_h)
-#define _my_sql_h
-#if !defined(_mysql_connection_h)
-#include "mysql_connection.h"
-#endif//!_mysql_connection_h
-#if !defined(_mysql_query_h)
-#include "mysql_query.h"
-#endif//!_mysql_query_h
-#include <vector>
-#ifndef mysqlw_export
-#define mysqlw_export __declspec(dllexport)
+#	define _my_sql_h
+#	include "mysql_connection.h"
+#	include "mysql_query.h"
+#	include <vector>
+#if !defined(mysqlw_export)
+#	define mysqlw_export __declspec(dllexport)
 #endif//!mysqlw_export
 #pragma warning(disable : 4996)
 class mysqlw_export my_sql {
 public:
-	my_sql();
+	explicit my_sql();
 	~my_sql();
 	connection_state connect(mysqlw::connection_details* connection_info);
 	connection_state connect();

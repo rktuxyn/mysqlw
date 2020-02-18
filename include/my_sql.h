@@ -2,19 +2,14 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_my_sql_h)
-#define _my_sql_h
-#if !defined(_WINSOCK2API_)
-#include <winsock2.h>
-#endif//!_WINSOCK2API_
-#if !defined(_mysql_h)
-#include <mysql.h>
-#endif//_mysql_h
+#	define _my_sql_h
+#	include <winsock2.h>
+#	include <mysql.h>
 #if !defined(mysqlw_export)
-#define mysqlw_export __declspec(dllexport)
+#	define mysqlw_export __declspec(dllexport)
 #endif//!mysqlw_export
-#if !defined(_connection_state_h)
-#include "connection_state.h"
-#endif//!_connection_state_h
+#	include "connection_state.h"
+#pragma warning (disable : 4996)
 namespace mysqlw {
 	typedef struct conn_pool {
 		struct conn_pool* next;    /* pointer to next member*/
