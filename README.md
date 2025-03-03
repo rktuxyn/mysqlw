@@ -1,74 +1,82 @@
-# Multi Connection Pool MySQL C++ Wrapper for web_jsx (FCGI/CGI Application)
-#Include header file
-```c++
-#include <my_sql.h>
-```
-Initilize my_sql instance
-```c++
-my_sql* sql = new my_sql();
-```
-Create connection detail
-```c++
-connection_details* con = new connection_details();
-con->database = new std::string("test");
-con->host = new std::string("localhost");
-con->user = new std::string("root");
-con->password = new std::string("*****");
-con->unix_socket = NULL;
-con->port = 0;
-con->clientflag = 0;
-```
-Connect MySQL with this connection detail
-```c++
-if (sql->connect( con ) == connection_state::CLOSED) {
-	std::cout << sql->get_last_error();
-}
-```
-Drop Database
-```c++
-mysql->execute( 'DROP DATABASE IF EXISTS web_jsx_db' );
-```
-Create Database
-```c++
-mysql->execute( 'CREATE DATABASE IF NOT EXISTS web_jsx_db' );
-```
-Switch Database
-```c++
-mysql->switch_database("web_jsx_db");
-```
-Execute plain sql statement
-```c++
-sql->execute("CREATE TABLE IF NOT EXISTS Persons ( PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255), City varchar(255))");
-```
-Read the status of current execution
-```c++
-if ( sql->has_error() ) {
-  std::cout << sql->get_last_error();
-}
-```
-Return query result
-```c++
-const char* ret = sql->execute('select Address from Persons limit 1');
-```
-Execute plain sql statement as like as data reader
-```c++
-int ret = sql->execute(select * from Persons, [](int index, std::vector<char*>& rows) {
-	for (std::vector<char*>::iterator i = rows.begin(); i != rows.end(); ++i){
-		std::cout << *i;
-	}
-	return;
-});
+# MySQLW
 
-if ( ret < 0 ) {
-	std::cout << sql->get_last_error();
+MySQLW is a lightweight, high-performance C++ wrapper for MySQL, designed to simplify database interactions while maintaining efficiency and flexibility.
+
+## Features
+
+- Simple and clean API for MySQL operations
+- High-performance query execution
+- Secure parameterized queries
+- Connection pooling for efficient resource management
+- Lightweight and dependency-free
+- Support for asynchronous operations (if applicable)
+
+## Installation
+
+### Prerequisites
+
+- MySQL client library (`libmysqlclient`)
+- C++17 or later
+- CMake (for building the project)
+
+### Build and Install
+
+```sh
+git clone https://github.com/fsystech/mysqlw.git
+cd mysqlw
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
+
+## Usage
+
+### Basic Example
+
+```cpp
+#include "mysqlw.h"
+
+int main() {
+    mysqlw::Connection conn("host", "user", "password", "database");
+    if (!conn.isConnected()) {
+        std::cerr << "Failed to connect to database" << std::endl;
+        return 1;
+    }
+
+    auto result = conn.query("SELECT * FROM users WHERE id = ?", 1);
+    for (auto& row : result) {
+        std::cout << "User ID: " << row["id"].as<int>() << "\n";
+    }
+    return 0;
 }
 ```
-Close all connection pool
-```c++
-sql->close_all_connection();
-```
-Clear MySQL all connection pool and instance
-```c++
-sql->exit_all();
 
-```
+## API Reference
+
+### `mysqlw::Connection`
+- `Connection(const std::string& host, const std::string& user, const std::string& password, const std::string& database)` - Initializes the connection.
+- `bool isConnected() const` - Checks if the connection is active.
+- `QueryResult query(const std::string& sql, Args... args)` - Executes a query with optional parameters.
+
+### `mysqlw::QueryResult`
+- `bool empty() const` - Checks if the result set is empty.
+- `size_t size() const` - Returns the number of rows.
+- `Row operator[](size_t index) const` - Access a specific row.
+
+### `mysqlw::Row`
+- `Column operator[](const std::string& columnName) const` - Access a specific column.
+- `template<typename T> T as() const` - Convert the column value to the desired type.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Feel free to submit issues or pull requests to improve MySQLW.
+
+## Contact
+
+For any inquiries, reach out to [FSys Tech Ltd](https://github.com/fsystech).
+
